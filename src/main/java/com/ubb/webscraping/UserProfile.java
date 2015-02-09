@@ -7,6 +7,9 @@ package com.ubb.webscraping;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -14,10 +17,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
+import org.jsoup.select.Elements;
 /**
  * @author Hemed, Øyvind
  * @date 04-02-2015
@@ -25,34 +30,86 @@ import org.jsoup.nodes.Element;
  */
 public class UserProfile {
     
-    final static int TIMEOUT_MILLIS = 5000;
-    final static String PAGE_URL = "https://uib.academia.edu/";
+     final static int TIMEOUT_MILLIS = 20000;
+     final static String PAGE_URL = "https://uib.academia.edu/";
     
-    public static void main(String[] args) throws IOException, InterruptedException
-    {   
-         int count = 0;
-         URL url = new URL(PAGE_URL);
-         Document document = Jsoup.parse(url, TIMEOUT_MILLIS);
-         Element departments = document.getElementById("department_list");
-        //Elements links = document.select("a[href]");
+     public static void main(String[] args) throws IOException, InterruptedException
+     {   
+           int count = 0;
+           URL url = new URL(PAGE_URL);
+         
+           Document document = Jsoup.parse(url , TIMEOUT_MILLIS);
+           Element departments = document.getElementById("department_list");
+           Elements links = document.select("a[href]");
+          
+            //Turn off loggings
+            Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF); 
         
             System.out.println("Printing UiB Departments in Academia.edu");
         
             //get div which has a 'name' attribute of 'John'
-          
+    
             WebClient webClient = new WebClient(BrowserVersion.FIREFOX_24);
-            
-            
             webClient.getOptions().setThrowExceptionOnScriptError(false);
             webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
             webClient.getOptions().setTimeout(TIMEOUT_MILLIS);
             webClient.getOptions().setCssEnabled(false);
          
+            HtmlPage academiaFrontPage = webClient.getPage(PAGE_URL);
             
-            HtmlPage page = webClient.getPage(new URL("https://uib.academia.edu/NilsAnfinset"));
-            //Thread.sleep(20000);
+            //Get a list of all the departments
+            List<DomNode> departmentNodeList = (DomNodeList)academiaFrontPage.getElementById("department_list").getElementsByTagName("a");
+   
+            for(DomNode aNode : departmentNodeList)
+            {  
+               //Convert a node into an html element for easier processing
+               HtmlAnchor a  = (HtmlAnchor)aNode;
+               
+               if(a.getAttribute("href").contains(PAGE_URL))
+               {
+
+                  System.out.println(a.asText() + "-->" + a.getAttribute("href"));
+                  System.out.println();
+                  
+                 
+                  HtmlPage academiaUserPage = (HtmlPage)webClient.getPage(a.getAttribute("href")); 
+                  webClient.waitForBackgroundJavaScript(TIMEOUT_MILLIS);
+
+                  
+                  
+                  //Get a list of all the users
+                  //List<HtmlAnchor> userNodeList = (ArrayList)academiaUserPage.getHtmlElementById("user_list"); //.getByXPath("descendant-or-self::a");
+                   List<HtmlElement> userNodeList = (ArrayList)academiaUserPage.getByXPath("//div[@id='user_list']/descendant-or-self::h3/a[contains(@href,'https://uib.academia.edu')]");
+                   
+                     //System.out.println(userNodeList.toString());
+                  
+                  for(HtmlElement aUserElement : userNodeList)
+                  {  
+                      String userURI = aUserElement.getAttribute("href");
+                      System.out.println(aUserElement.asText() + "-->" + aUserElement.getAttribute("href"));
+                      System.out.println();
+                     
+                      getUserInfo(webClient , userURI, TIMEOUT_MILLIS);
+                     
+                  }
+   
+               }
+               
+               count++;
+               
+               if(count > 1) break;
+               
+               webClient.closeAllWindows();
+            }
+       }
             
-            webClient.waitForBackgroundJavaScript(TIMEOUT_MILLIS);
+ 
+            
+           private static void getUserInfo(WebClient webClient, String userLink , long waitTimeout) throws IOException
+           {
+            
+            HtmlPage page = (HtmlPage)webClient.getPage(userLink);
+            webClient.waitForBackgroundJavaScript(waitTimeout);
            
            //get list of all divs
            //final List<?> divs = page.getByXPath("/html/body/div[5]/div[1]/div/div[4]/div[1]/div/div[3]/a/div[1]");
@@ -72,7 +129,7 @@ public class UserProfile {
             
             //Get person publication
             //List<HtmlElement> publications = (ArrayList)page.getByXPath("//div[@class='header']/div[@class='title' and a/@class='title_link']");
-            List<HtmlElement> publications = (ArrayList)page.getByXPath("//div[@class='header']/div[@class='title']/a[contains(@href,'academia.edu')]");
+            //List<HtmlElement> publications = (ArrayList)page.getByXPath("//div[@class='header']/div[@class='title']/a[contains(@href,'academia.edu')]");
             
             //Get publication counts
       //                  List<HtmlElement> publicationCount = (ArrayList)page.getByXPath("//div[@class='views']/span[@class='view-count-widget']/strong[@class='view-count']");
@@ -88,37 +145,28 @@ public class UserProfile {
             System.out.println("Followers: " + numberOfFolower.asText());
             
             
-            //for(HtmlElement element : publications)
-            //{
-              
-                   
-                //HtmlElement e = (HtmlElement)element.getByXPath("//a").get(1);
-               
-           //    System.out.println("Paper: " + element.getFirstByXPath("//a/@href") + " : " + element.asText());
-                 //System.out.println("Paper: " + element.getAttribute("href") + " : " + element.asText());
- 
-               
-            //}
-            
                       
             for(HtmlElement element : publicationCount)
             {
                String dataCounId =  element.getAttribute("data-work_id");
-               String xpathExp = "//a[@data-container='.work_"+dataCounId+"']/preceding-sibling::a[1]";
-               String xpathExpCount = "//strong[@class='view-count' and ancestor::div[@data-work_id='"+dataCounId+"']]";
+               String xpathExp = "//a[@data-container='.work_" + dataCounId + "']/preceding-sibling::a[1]";
+               String xpathPublicationViewCount = "//strong[@class='view-count' and ancestor::div[@data-work_id='" + dataCounId + "']]";
                HtmlElement countPub = (HtmlElement)element.getFirstByXPath("//div[@class='right-icons']/div[@class='views']/span[@class='view-count-widget']/strong[@class='view-count']");
-               HtmlElement strongCount = (HtmlElement)page.getFirstByXPath(xpathExpCount);
+               HtmlElement publicationViewCount = (HtmlElement)page.getFirstByXPath(xpathPublicationViewCount);
 
                HtmlElement link = (HtmlElement)page.getFirstByXPath(xpathExp);
                
-               System.out.println("LINK: " + link.getAttribute("href") + "NAME: " + link.asText() + "COUNT " + strongCount.asText());
+               System.out.println("PUBLICATION URI: " + link.getAttribute("href") +
+                                 "\nPUBLICATION NAME: " + link.asText() + 
+                                 "\nPUBLICATION VIEWS " + publicationViewCount.asText());
+               System.out.println();
    
-               
                //HtmlElement el = (HtmlElement)element.getByXPath("//div[@class='views']/span[@class='view-count-widget']/strong[@class='view-count']").get(0);
                //System.out.println("Count Id : " + element.getAttribute("data-work_id"));
             }
-            webClient.closeAllWindows();
-       }
+                
+        }
+      }
         
     
         /**Elements l = departments.getElementsByTag("a");
@@ -180,4 +228,4 @@ public class UserProfile {
 
     //}**/
     
-}
+
