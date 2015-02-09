@@ -26,9 +26,6 @@
         </dependency>
     </dependencies>
     
-
-    
-    
     <build>
         <plugins>
           <plugin>
@@ -39,7 +36,7 @@
                 <archive>
                   <manifest>
                        <addClasspath>true</addClasspath>
-                       <mainClass>com.ubb.imaging.ImagingMain</mainClass>
+                       <mainClass>com.ubb.webscraping.UserProfile</mainClass>
                   </manifest>
                 </archive>
               <outputDirectory>${project.build.directory}</outputDirectory>
