@@ -10,15 +10,15 @@ import com.google.gson.JsonObject;
 import com.ubb.webscraping.settings.ProfileSettings;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 
 /**
  *
  * @author Hemed
  */
 public class AcademiaUserProfile {
-    
     
          /** 
          * A method to get extra user information from academia.edu
@@ -28,16 +28,18 @@ public class AcademiaUserProfile {
          * @param waitTimeout
          * @throws java.io.IOException
           */
-           public void getUserProperties(WebClient webClient, HtmlElement aUserElement , JsonObject userProperties, long waitTimeout ) throws IOException
+           public void getUserProperties(WebClient webClient, HtmlElement aUserElement , JsonObject userProperties, Sheet userSheet, Sheet publicationSheet, int userCount) throws IOException
            {
-            HtmlPage page = (HtmlPage)webClient.getPage(aUserElement.getAttribute("href"));
-            webClient.waitForBackgroundJavaScript(waitTimeout);
-            //TO DO: We need to make sure the page is totally loaded before proceeding..
+            int countPublication = 0;
             
+            HtmlPage page = (HtmlPage)webClient.getPage(aUserElement.getAttribute("href"));
+            webClient.waitForBackgroundJavaScript(ProfileSettings.TIMEOUT_MILLIS);
+            //TO DO: We need to make sure the page is totally loaded before proceeding..
             HtmlElement numberOfFollowing = (HtmlElement)page.getFirstByXPath("//div[@id='following']/a/h3");
             HtmlDivision totalViews = (HtmlDivision)page.getFirstByXPath("//div[@class='stat total-views']/a/div[@class='count']");
             HtmlDivision numberOfFolower = (HtmlDivision)page.getFirstByXPath("//div[@class='stat followers']/a/div[@class='count']");
             List<HtmlElement> publicationCount = (ArrayList)page.getByXPath("//div[div[@class='right-icons']/div[@class='views']/span[@class='view-count-widget']/strong[@class='view-count']]");
+            
             JsonArray publications = new JsonArray();
             
             try {
@@ -52,25 +54,71 @@ public class AcademiaUserProfile {
                  userProperties.addProperty(ProfileSettings.TOTAL_PROFILE_VIEWS, Integer.parseInt(totalViews.asText()));
                  userProperties.addProperty(ProfileSettings.FOLLOWING , Integer.parseInt(numberOfFollowings[0]));
                  userProperties.addProperty(ProfileSettings.FOLLOWERS , Integer.parseInt(numberOfFolower.asText()));
+                 
+                 
+                 //For every user, create it's own row.
+                 Row userRow = userSheet.createRow(userCount);
+
+                 userRow.createCell(0)
+                           .setCellValue(aUserElement.getAttribute("href"));
+
+                 userRow.createCell(1)
+                           .setCellValue(aUserElement.asText());
+
+                 userRow.createCell(2)
+                           .setCellValue(Integer.parseInt(totalViews.asText()));
+
+                 userRow.createCell(3)
+                           .setCellValue(Integer.parseInt(numberOfFollowings[0]));
+
+                 userRow.createCell(4)
+                           .setCellValue(Integer.parseInt(numberOfFolower.asText()));
 
                 for (HtmlElement element : publicationCount) 
-                {
+                {   
+                    //Create publication JSON object
                     JsonObject publicationProperties = new JsonObject();
+                    
                     String dataCountId =  element.getAttribute("data-work_id");
                     String xpathExp = "//a[@data-container='.work_" + dataCountId + "']/preceding-sibling::a[1]";
                     String xpathPublicationViewCount = "//strong[@class='view-count' and ancestor::div[@data-work_id='" + dataCountId + "']]";
+                    
                     HtmlElement publicationViewCount = (HtmlElement)page.getFirstByXPath(xpathPublicationViewCount);
                     HtmlElement link = (HtmlElement)page.getFirstByXPath(xpathExp);
+                    
                     publicationProperties.addProperty(ProfileSettings.PUBLICATION_ID, link.getAttribute("href"));
                     publicationProperties.addProperty(ProfileSettings.PUBLICATION_NAME, link.asText());
                     publicationProperties.addProperty(ProfileSettings.PUBLICATION_VIEWS, Integer.parseInt(publicationViewCount.asText()));
                     publications.add(publicationProperties); 
+                    
+                    
+                    //Fill in data in publication work sheet
+                     Row publicationRow = publicationSheet.createRow(countPublication);
+                     
+                     //Get user Id as a foreign key for each publication
+                     publicationRow.createCell(0)
+                           .setCellValue(aUserElement.getAttribute("href"));
+                     
+                     //publication URI
+                     publicationRow.createCell(1)
+                               .setCellValue(link.getAttribute("href"));
+                     
+                     //Publication Title
+                     publicationRow.createCell(2)
+                               .setCellValue(link.asText());
+
+                     //Publication views
+                     publicationRow.createCell(3)
+                               .setCellValue(Integer.parseInt(publicationViewCount.asText()));
+
+                     countPublication++;
+                    
                 }
             }
             catch(Exception ex){ex.printStackTrace();}
             
             finally{
-                
+     
              if(!publications.isJsonNull())
                 userProperties.add(ProfileSettings.PUBLICATIONS, publications);
             }
