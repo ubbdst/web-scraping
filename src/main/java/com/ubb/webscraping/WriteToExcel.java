@@ -20,7 +20,15 @@ public class WriteToExcel {
     
     public static void main(String [] args) throws IOException
     {
-         FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfile.xls");
+        
+        String name = "Ali H. Mwinyi Issu";
+        AcademiaUserProfile ap = new AcademiaUserProfile();
+        
+        System.out.println(ap.extractFirstName(name));
+        System.out.println(ap.extractLastName(name));
+        
+        
+        FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfile.xls");
          Workbook wb = new HSSFWorkbook();
          
          //Create user work sheet

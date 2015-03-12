@@ -20,6 +20,8 @@ public class ProfileSettings {
     public static final String PUBLICATION_NAME = "name";
     public static final String PUBLICATION_VIEWS = "views";
     public static final int TIMEOUT_MILLIS = 30000;
+    public static int LOCAL_PUBLICATION_COUNT = 0;
+    public static int LOCAL_USER_COUNT = 0;
  
     
 }

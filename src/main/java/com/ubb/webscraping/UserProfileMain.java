@@ -48,8 +48,8 @@ public class UserProfileMain {
             
             //Create publication work sheet
             Sheet publicationSheet = wb.createSheet("Publication");
-         
             int userCount = 0;
+            
             boolean proceed = true;
             
             //Create temp file to store data for uib.academia.edu users
@@ -75,7 +75,7 @@ public class UserProfileMain {
              //Iterate through every department
              for(DomNode aNode : departmentList)
              {
-                 JsonObject userProperties = new JsonObject();
+                 JsonObject jsonObject = new JsonObject();
                  //Convert a node into an html element for easier processing
                  HtmlAnchor a  = (HtmlAnchor)aNode;
                  
@@ -93,23 +93,24 @@ public class UserProfileMain {
                      {   
                          //Get information about the user in Academia.edu
                          //academiaUser.getUserProperties(webClient, aUserElement, userProperties, TIMEOUT_MILLIS);
-                          academiaUser.getUserProperties(webClient, aUserElement, userProperties ,userSheet, publicationSheet, userCount);
+                          academiaUser.getUserProperties(webClient, aUserElement, jsonObject,userSheet, publicationSheet);
                          
                          //Print the json representation of the user to the console
-                         System.out.println(gson.toJson(userProperties) + "\n");
+                         System.out.println(gson.toJson(jsonObject) + "\n");
                          
                          //TO DO: Write to a file with UTF-8 encoding
-                         fileWriter.write(gson.toJson(userProperties));
+                         fileWriter.write(gson.toJson(jsonObject));
                          
                          //Write only 4 entries.
-                         if(userCount > 4) {
+                         if(userCount > 2) {
                              fileWriter.close();
                              wb.write(fileOut);
                              fileOut.close();
-                             
+                             System.out.println("No of Publications: " + ProfileSettings.LOCAL_PUBLICATION_COUNT);
                              break;
                          }
                          
+                         ProfileSettings.LOCAL_USER_COUNT++;
                          userCount++;
                      }
                      
