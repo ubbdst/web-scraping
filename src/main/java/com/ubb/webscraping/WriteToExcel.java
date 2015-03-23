@@ -12,6 +12,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * @author Hemed
@@ -28,9 +29,10 @@ public class WriteToExcel {
         System.out.println(ap.extractLastName(name));
         
         
-        FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfile.xls");
-         Workbook wb = new HSSFWorkbook();
+        FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfileTest.xlsx");
+         Workbook wb = new XSSFWorkbook();
          
+
          //Create user work sheet
          Sheet userSheet = wb.createSheet("User");
          

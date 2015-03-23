@@ -15,13 +15,14 @@ public class ProfileSettings {
     public static final String FOLLOWERS = "followers";
     public static final String FOLLOWING = "following";
     public static final String USER_FULL_NAME = "fullName";
+    public static final String CO_AUTHORS = "coauthors";
     public static final String PUBLICATIONS = "publications";
     public static final String PUBLICATION_ID = "id";
     public static final String PUBLICATION_NAME = "name";
     public static final String PUBLICATION_VIEWS = "views";
     public static final int TIMEOUT_MILLIS = 30000;
-    public static int LOCAL_PUBLICATION_COUNT = 0;
-    public static int LOCAL_USER_COUNT = 0;
+    public static int LOCAL_PUBLICATION_COUNT = 1;
+    public static int LOCAL_USER_COUNT = 1;
  
     
 }

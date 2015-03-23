@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * @author Hemed, Øyvind
@@ -38,19 +38,19 @@ public class UserProfileMain {
      {   
             Gson gson = new Gson();
             AcademiaUserProfile academiaUser = new AcademiaUserProfile();
-            FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfile.xls");
+            FileOutputStream fileOut = new FileOutputStream("AcademiaUserProfile.xlsx");
             
             //Create XLS Workbook
-            Workbook wb = new HSSFWorkbook();
+            Workbook wb = new XSSFWorkbook();
          
             //Create user work sheet
             Sheet userSheet = wb.createSheet("User");
+            AcademiaUserProfile.writeHeaderForUserSheet(userSheet);
             
             //Create publication work sheet
             Sheet publicationSheet = wb.createSheet("Publication");
-            int userCount = 0;
-            
-            boolean proceed = true;
+            AcademiaUserProfile.writeHeaderForPublicationSheet(publicationSheet);
+
             
             //Create temp file to store data for uib.academia.edu users
             File  tempFile = new File(ACADEMIA_USERS_TEMP_FILE);
@@ -94,33 +94,25 @@ public class UserProfileMain {
                          //Get information about the user in Academia.edu
                          //academiaUser.getUserProperties(webClient, aUserElement, userProperties, TIMEOUT_MILLIS);
                           academiaUser.getUserProperties(webClient, aUserElement, jsonObject,userSheet, publicationSheet);
+                          ProfileSettings.LOCAL_USER_COUNT++;
                          
                          //Print the json representation of the user to the console
-                         System.out.println(gson.toJson(jsonObject) + "\n");
+                         //System.out.println(gson.toJson(jsonObject) + "\n");
                          
                          //TO DO: Write to a file with UTF-8 encoding
-                         fileWriter.write(gson.toJson(jsonObject));
-                         
-                         //Write only 4 entries.
-                         if(userCount > 2) {
-                             fileWriter.close();
-                             wb.write(fileOut);
-                             fileOut.close();
-                             System.out.println("No of Publications: " + ProfileSettings.LOCAL_PUBLICATION_COUNT);
-                             break;
-                         }
-                         
-                         ProfileSettings.LOCAL_USER_COUNT++;
-                         userCount++;
+                         //fileWriter.write(gson.toJson(jsonObject));
+                       
                      }
                      
                  }
              }
+
+             fileWriter.close();
+             wb.write(fileOut);
+             fileOut.close();           
              webClient.closeAllWindows();
-         }
-      
-         }
-            
+           }
+         }  
       }
     
 
