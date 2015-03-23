@@ -94,7 +94,6 @@ public class UserProfileMain {
                          //Get information about the user in Academia.edu
                          //academiaUser.getUserProperties(webClient, aUserElement, userProperties, TIMEOUT_MILLIS);
                           academiaUser.getUserProperties(webClient, aUserElement, jsonObject,userSheet, publicationSheet);
-                          wb.write(fileOut);
                           ProfileSettings.LOCAL_USER_COUNT++;
                          
                          //Print the json representation of the user to the console
@@ -105,11 +104,11 @@ public class UserProfileMain {
                      }
                      
                  } 
-                 //Test for only one department for now.
-                 fileWriter.close();
-                 fileOut.close();  
-             }         
-             webClient.closeAllWindows();
+             }   
+            wb.write(fileOut);
+            fileWriter.close();
+            fileOut.close();  
+            webClient.closeAllWindows();
            }
          }  
       }
