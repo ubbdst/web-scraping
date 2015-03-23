@@ -28,7 +28,6 @@ public class AcademiaUserProfile {
          * @param webClient
          * @param aUserElement
          * @param userProperties
-         * @param waitTimeout
          * @throws java.io.IOException
           */
            public void getUserProperties(WebClient webClient, HtmlElement aUserElement , JsonObject userProperties, Sheet userSheet, Sheet publicationSheet) throws IOException
@@ -57,8 +56,8 @@ public class AcademiaUserProfile {
                  String lastName = extractLastName(fullName);
                  String coAuthors = getCoAuthorURI(coauthorURIList);
                 
-                 int profileViews = Integer.parseInt(totalViews.asText());
-                 int followings =  Integer.parseInt(numberOfFollowings[0]);
+                 String profileViews = totalViews.asText();
+                 String followings =   numberOfFollowings[0];
                  String followers = numberOfFolower.asText();
                 
                 //Build user object                
@@ -120,7 +119,7 @@ public class AcademiaUserProfile {
                     
                     String publicationURI = URLDecoder.decode(link.getAttribute("href") , "UTF-8");
                     String name = link.asText();
-                    int views = Integer.parseInt(publicationViewCount.asText());
+                    String views = publicationViewCount.asText();
                     
                     publicationProperties.addProperty(ProfileSettings.PUBLICATION_ID, publicationURI);
                     publicationProperties.addProperty(ProfileSettings.PUBLICATION_NAME, name);
